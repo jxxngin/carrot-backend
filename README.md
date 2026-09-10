@@ -99,13 +99,35 @@ http://localhost:8080/api/products
 
 네이버 캠퍼스 핵데이 Java 코딩 컨벤션을 기준으로 합니다.
 
-- 기본 편집 규칙: .editorconfig
-- IntelliJ 포매터: config/style/naver-intellij-formatter.xml
-- IntelliJ에서 해당 XML을 Code Style의 Import Scheme으로 불러옵니다.
-- 저장 시 Reformat code와 Optimize imports를 사용합니다.
-- Checkstyle을 통한 자동 규칙 검사는 아직 연동하지 않았습니다.
+### 편집기 설정
 
-공식 가이드: https://naver.github.io/hackday-conventions-java/
+- 기본 편집 규칙: `.editorconfig`
+- IntelliJ 포매터: `config/style/naver-intellij-formatter.xml`
+- IntelliJ의 Code Style → Import Scheme에서 해당 XML을 불러옵니다.
+- 저장 시 Reformat code와 Optimize imports를 사용합니다.
+- Java 파일의 줄바꿈은 LF로 통일합니다.
+
+### Checkstyle 검사
+
+- Checkstyle 버전: `10.26.1`
+- 규칙 파일: `config/checkstyle/naver-checkstyle-rules.xml`
+- 검사 제외 설정: `config/checkstyle/naver-checkstyle-suppressions.xml`
+- 경고가 남아 있으면 검사에 실패합니다.
+
+프로젝트 루트의 Git Bash에서 실행합니다.
+
+```bash
+./gradlew checkstyleMain checkstyleTest
+```
+
+운영 코드와 테스트 코드의 스타일을 검사합니다.
+테스트 자체를 실행하는 명령은 아닙니다.
+
+HTML 보고서:
+- `build/reports/checkstyle/main.html`
+- `build/reports/checkstyle/test.html`
+
+공식 가이드: [네이버 Java 코딩 컨벤션](https://naver.github.io/hackday-conventions-java/)
 
 ## 현재 제한 사항
 
