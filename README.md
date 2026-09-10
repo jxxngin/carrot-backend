@@ -95,6 +95,18 @@ Windows Git Bash:
 
 http://localhost:8080/api/products
 
+## 코드 스타일
+
+네이버 캠퍼스 핵데이 Java 코딩 컨벤션을 기준으로 합니다.
+
+- 기본 편집 규칙: .editorconfig
+- IntelliJ 포매터: config/style/naver-intellij-formatter.xml
+- IntelliJ에서 해당 XML을 Code Style의 Import Scheme으로 불러옵니다.
+- 저장 시 Reformat code와 Optimize imports를 사용합니다.
+- Checkstyle을 통한 자동 규칙 검사는 아직 연동하지 않았습니다.
+
+공식 가이드: https://naver.github.io/hackday-conventions-java/
+
 ## 현재 제한 사항
 
 - 데이터는 메모리에 저장되며 서버 재시작 시 초기화됩니다.

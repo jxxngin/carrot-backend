@@ -1,59 +1,61 @@
 package com.example.carrot.product;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ProductController {
 
-    private final ProductService productService;
+	private final ProductService productService;
 
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
+	public ProductController(ProductService productService) {
+		this.productService = productService;
+	}
 
-    @GetMapping("/api/products")
-    public List<Product> getProducts() {
-        return productService.getProducts();
-    }
+	@GetMapping("/api/products")
+	public List<Product> getProducts() {
+		return productService.getProducts();
+	}
 
-    @GetMapping("/api/products/{id}")
-    public Product getProduct(@PathVariable("id") Long id) {
-        return productService.getProduct(id);
-    }
+	@GetMapping("/api/products/{id}")
+	public Product getProduct(@PathVariable("id") Long id) {
+		return productService.getProduct(id);
+	}
 
-    @PostMapping("/api/products")
-    public ResponseEntity<Product> createProduct(
-            @RequestBody CreateProductRequest request
-    ) {
-        Product product = productService.createProduct(request);
+	@PostMapping("/api/products")
+	public ResponseEntity<Product> createProduct(
+		@RequestBody CreateProductRequest request
+	) {
+		Product product = productService.createProduct(request);
 
-        return ResponseEntity
-                .created(URI.create("/api/products/" + product.id()))
-                .body(product);
-    }
+		return ResponseEntity
+			.created(URI.create("/api/products/" + product.id()))
+			.body(product);
+	}
 
-    @PutMapping("/api/products/{id}")
-    public Product updateProduct(
-            @PathVariable("id") Long id,
-            @RequestBody UpdateProductRequest request
-    ) {
-        return productService.updateProduct(id, request);
-    }
+	@PutMapping("/api/products/{id}")
+	public Product updateProduct(
+		@PathVariable("id") Long id,
+		@RequestBody UpdateProductRequest request
+	) {
+		return productService.updateProduct(id, request);
+	}
 
-    @DeleteMapping("/api/products/{id}")
-    public ResponseEntity<Void> deleteProduct(
-            @PathVariable("id") Long id
-    ) {
-        productService.deleteProduct(id);
+	@DeleteMapping("/api/products/{id}")
+	public ResponseEntity<Void> deleteProduct(
+		@PathVariable("id") Long id
+	) {
+		productService.deleteProduct(id);
 
-        return ResponseEntity.noContent().build();
-    }
+		return ResponseEntity.noContent().build();
+	}
 }
