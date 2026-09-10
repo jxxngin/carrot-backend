@@ -85,6 +85,17 @@ public class ProductService {
         return toProduct(entity);
     }
 
+    @Transactional
+    public void deleteProduct(Long id) {
+        ProductEntity entity = productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "해당 상품을 찾을 수 없습니다."
+                ));
+
+        productRepository.delete(entity);
+    }
+
     private Product toProduct(ProductEntity entity) {
         return new Product(
                 entity.getId(),

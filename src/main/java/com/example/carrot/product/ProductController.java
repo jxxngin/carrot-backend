@@ -47,4 +47,13 @@ public class ProductController {
     ) {
         return productService.updateProduct(id, request);
     }
+
+    @DeleteMapping("/api/products/{id}")
+    public ResponseEntity<Void> deleteProduct(
+            @PathVariable("id") Long id
+    ) {
+        productService.deleteProduct(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }
