@@ -41,7 +41,7 @@ public class ProductService {
     public Product createProduct(CreateProductRequest request) {
         if (request.title() == null || request.title().isBlank()
             || request.location() == null || request.location().isBlank()
-            || request.price() < 0) {
+            || request.price() == null || request.price() < 0) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "제목과 지역은 필수이며, 가격은 0 이상이어야 합니다."
