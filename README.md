@@ -35,6 +35,8 @@
 | GET | /api/products | 상품 목록 조회 | 200 |
 | GET | /api/products/{id} | 상품 상세 조회 | 200 |
 | POST | /api/products | 상품 등록 | 201 |
+| PUT | /api/products/{id} | 상품 수정 | 200 |
+| DELETE | /api/products/{id} | 상품 삭제 | 204 |
 
 ### 상품 등록 요청 예시
 
@@ -48,12 +50,24 @@
 
 상품 ID는 서버에서 생성합니다.
 
+### 상품 수정
+
+제목, 가격, 지역을 모두 전달합니다.
+가격은 0 이상이어야 하며, 생략하거나 null로 보내면 400을 반환합니다.
+
+### 상품 삭제
+
+DB에서 상품을 실제로 삭제합니다.
+성공 시 응답 본문 없이 204를 반환합니다.
+존재하지 않는 상품을 수정하거나 삭제하면 404를 반환합니다.
+
 ## 코드 구조
 
 - Product: 상품 데이터를 표현하는 record
 - CreateProductRequest: 등록 요청 데이터를 받는 DTO
 - ProductController: HTTP 요청 매핑과 응답 구성
 - ProductService: 상품 조회·등록 및 입력 검사
+- UpdateProductRequest: 상품 수정 요청 DTO
 
 Controller는 생성자를 통해 ProductService를 주입받습니다.
 현재 예외 처리는 ResponseStatusException을 사용합니다.
@@ -84,9 +98,8 @@ http://localhost:8080/api/products
 
 ## 다음 단계
 
-- DB 연동과 상품 영구 저장
-- 입력 검증 및 예외 응답 개선
-- 상품 수정·삭제
+- 등록 요청의 가격 누락 검증 개선
+- 입력 검증 및 예외 응답 형식 정리
 - 프론트엔드 연결
 
 ## 학습 진행 규칙
