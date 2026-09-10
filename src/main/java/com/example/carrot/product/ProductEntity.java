@@ -42,4 +42,10 @@ public class ProductEntity {
     public String getLocation() {
         return location;
     }
+
+    public void update(String title, int price, String location) {
+        this.title = title;
+        this.price = price;
+        this.location = location;
+    }
 }

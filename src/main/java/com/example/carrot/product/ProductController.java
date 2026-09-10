@@ -39,4 +39,12 @@ public class ProductController {
                 .created(URI.create("/api/products/" + product.id()))
                 .body(product);
     }
+
+    @PutMapping("/api/products/{id}")
+    public Product updateProduct(
+            @PathVariable("id") Long id,
+            @RequestBody UpdateProductRequest request
+    ) {
+        return productService.updateProduct(id, request);
+    }
 }
