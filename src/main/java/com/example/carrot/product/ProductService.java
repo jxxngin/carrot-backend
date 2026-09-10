@@ -1,7 +1,9 @@
 package com.example.carrot.product;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -9,34 +11,33 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
+@Transactional(readOnly = true)
 public class ProductService {
 
-    private final List<Product> products = new CopyOnWriteArrayList<>(
-            List.of(
-                    new Product(1L, "원목 책상", 25000, "역삼동"),
-                    new Product(2L, "자전거", 80000, "서초동")
-            )
-    );
+    private final ProductRepository productRepository;
 
-    private final AtomicLong nextId = new AtomicLong(3);
+    public ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     public List<Product> getProducts() {
-        return List.copyOf(products);
+        return productRepository.findAll(Sort.by("id").ascending())
+                .stream()
+                .map(this::toProduct)
+                .toList();
     }
 
     public Product getProduct(Long id) {
-        for (Product product : products) {
-            if (product.id().equals(id)) {
-                return product;
-            }
-        }
+        ProductEntity entity = productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "해당 상품을 찾을 수 없습니다."
+                ));
 
-        throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "해당 상품을 찾을 수 없습니다."
-        );
+        return toProduct(entity);
     }
 
+    @Transactional
     public Product createProduct(CreateProductRequest request) {
         if (request.title() == null || request.title().isBlank()
             || request.location() == null || request.location().isBlank()
@@ -47,14 +48,23 @@ public class ProductService {
             );
         }
 
-        Product product = new Product(
-                nextId.getAndIncrement(),
+        ProductEntity entity = new ProductEntity(
                 request.title(),
                 request.price(),
                 request.location()
         );
 
-        products.add(product);
-        return product;
+        ProductEntity savedEntity = productRepository.save(entity);
+
+        return toProduct(savedEntity);
+    }
+
+    private Product toProduct(ProductEntity entity) {
+        return new Product(
+                entity.getId(),
+                entity.getTitle(),
+                entity.getPrice(),
+                entity.getLocation()
+        );
     }
 }
