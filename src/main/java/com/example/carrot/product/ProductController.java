@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 @RestController
 public class ProductController {
 
@@ -33,7 +35,7 @@ public class ProductController {
 
 	@PostMapping("/api/products")
 	public ResponseEntity<Product> createProduct(
-		@RequestBody CreateProductRequest request
+		@Valid @RequestBody CreateProductRequest request
 	) {
 		Product product = productService.createProduct(request);
 
@@ -45,7 +47,7 @@ public class ProductController {
 	@PutMapping("/api/products/{id}")
 	public Product updateProduct(
 		@PathVariable("id") Long id,
-		@RequestBody UpdateProductRequest request
+		@Valid @RequestBody UpdateProductRequest request
 	) {
 		return productService.updateProduct(id, request);
 	}
