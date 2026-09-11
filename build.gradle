@@ -18,6 +18,13 @@ repositories {
 	mavenCentral()
 }
 
+configurations {
+    mockitoAgent {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -28,10 +35,15 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    mockitoAgent('org.mockito:mockito-core') {
+        transitive = false
+    }
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
+    jvmArgs "-javaagent:${configurations.mockitoAgent.singleFile.absolutePath}"
 }
 
 checkstyle {
