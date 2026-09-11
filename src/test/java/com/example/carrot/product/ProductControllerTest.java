@@ -1,6 +1,6 @@
 package com.example.carrot.product;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.carrot.common.error.GlobalExceptionHandler;
 
@@ -92,5 +94,47 @@ public class ProductControllerTest {
 				.value("요청 파라미터의 타입을 확인해주세요."));
 
 		verifyNoInteractions(productService);
+	}
+
+	@Test
+	@DisplayName("상품을 조회하면 200과 상품 정보를 반환한다")
+	void returnsProduct() throws Exception {
+		Product product = new Product(
+			1L,
+			"keyboard",
+			15000,
+			"Seoul"
+		);
+
+		given(productService.getProduct(1L))
+			.willReturn(product);
+
+		mockMvc.perform(get("/api/products/1"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id").value(1))
+			.andExpect(jsonPath("$.title").value("keyboard"))
+			.andExpect(jsonPath("$.price").value(15000))
+			.andExpect(jsonPath("$.location").value("Seoul"));
+
+		verify(productService).getProduct(1L);
+	}
+
+	@Test
+	@DisplayName("상품이 없으면 404와 공통 오류 응답을 반환한다")
+	void returnsNotFoundForMissingProduct() throws Exception {
+		given(productService.getProduct(999L))
+			.willThrow(new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"해당 상품을 찾을 수 없습니다."
+			));
+
+		mockMvc.perform(get("/api/products/999"))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.status").value(404))
+			.andExpect(jsonPath("$.message")
+				.value("해당 상품을 찾을 수 없습니다."))
+			.andExpect(jsonPath("$.errors").isEmpty());
+
+		verify(productService).getProduct(999L);
 	}
 }
