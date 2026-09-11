@@ -137,4 +137,24 @@ public class ProductControllerTest {
 
 		verify(productService).getProduct(999L);
 	}
+
+	@Test
+	@DisplayName("수정 가격이 누락되면 400을 반환하고 Service를 호출하지 않는다")
+	void rejectsUpdateWithoutPrice() throws Exception {
+		mockMvc.perform(put("/api/products/1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+					{
+						"title": "updated keyboard",
+						"location": "Seoul"
+					}
+					"""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.status").value(400))
+			.andExpect(jsonPath("$.errors.length()").value(1))
+			.andExpect(jsonPath("$.errors[0].field").value("price"))
+			.andExpect(jsonPath("$.errors[0].message").value("가격은 필수입니다."));
+
+		verifyNoInteractions(productService);
+	}
 }
