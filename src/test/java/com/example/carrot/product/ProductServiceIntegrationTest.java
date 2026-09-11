@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 
+// 테스트 트랜잭션 안에서 CRUD와 DB 반영을 검증한다.
+// Service가 독립적으로 트랜잭션을 시작하고 커밋하는지는 검증하지 않는다.
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
