@@ -146,4 +146,26 @@ public class ProductServiceIntegrationTest {
 			.extracting(Product::id)
 			.containsExactly(first.id(), second.id());
 	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"%", "_"})
+	@DisplayName("검색어의 퍼센트와 밑줄을 일반 문자로 검색한다")
+	void searchesSpecialCharactersLiterally(String keyword) {
+		Product matching = productService.createProduct(
+			new CreateProductRequest("상품" + keyword + "확인", 1000, "Seoul")
+		);
+		productService.createProduct(
+			new CreateProductRequest("상품X확인", 2000, "Busan")
+		);
+		productService.createProduct(
+			new CreateProductRequest("일반 상품", 3000, "Seoul")
+		);
+
+		entityManager.flush();
+		entityManager.clear();
+
+		assertThat(productService.getProducts(keyword))
+			.extracting(Product::id)
+			.containsExactly(matching.id());
+	}
 }
