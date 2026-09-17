@@ -18,9 +18,19 @@ public class ProductService {
 		this.productRepository = productRepository;
 	}
 
-	public List<Product> getProducts() {
-		return productRepository.findAll(Sort.by("id").ascending())
-			.stream()
+	public List<Product> getProducts(String keyword) {
+		String normalizedKeyword = keyword == null ? "" : keyword.strip();
+		Sort sort = Sort.by("id").ascending();
+
+		List<ProductEntity> entities;
+
+		if (normalizedKeyword.isEmpty()) {
+			entities = productRepository.findAll(sort);
+		} else {
+			entities = productRepository.findByTitleContainingIgnoreCase(normalizedKeyword, sort);
+		}
+
+		return entities.stream()
 			.map(this::toProduct)
 			.toList();
 	}
