@@ -4,6 +4,8 @@ import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,5 +158,63 @@ public class ProductControllerTest {
 			.andExpect(jsonPath("$.errors[0].message").value("가격은 필수입니다."));
 
 		verifyNoInteractions(productService);
+	}
+
+	@Test
+	@DisplayName("검색어를 Service에 전달하고 검색 결과를 반환한다")
+	void returnsProductsForKeyword() throws Exception {
+		Product product = new Product(
+			1L,
+			"무선 키보드",
+			15000,
+			"잠실동"
+		);
+
+		given(productService.getProducts("키보드"))
+			.willReturn(List.of(product));
+
+		mockMvc.perform(get("/api/products")
+				.param("keyword", "키보드"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.length()").value(1))
+			.andExpect(jsonPath("$[0].id").value(1))
+			.andExpect(jsonPath("$[0].title").value("무선 키보드"));
+
+		verify(productService).getProducts("키보드");
+	}
+
+	@Test
+	@DisplayName("검색어를 생략하면 null을 Service에 전달한다")
+	void acceptsRequestWithoutKeyword() throws Exception {
+		Product product = new Product(
+			1L,
+			"Mouse",
+			5000,
+			"Seoul"
+		);
+
+		given(productService.getProducts(null))
+			.willReturn(List.of(product));
+
+		mockMvc.perform(get("/api/products"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.length()").value(1))
+			.andExpect(jsonPath("$[0].title").value("Mouse"));
+
+		verify(productService).getProducts(null);
+	}
+
+	@Test
+	@DisplayName("검색 결과가 없으면 200과 빈 배열을 반환한다")
+	void returnsEmptyArrayWhenSearchHasNoResults() throws Exception {
+		given(productService.getProducts("monitor"))
+			.willReturn(List.of());
+
+		mockMvc.perform(get("/api/products")
+				.param("keyword", "monitor"))
+			.andExpect(status().isOk())
+			.andExpect(content().json("[]"));
+
+		verify(productService).getProducts("monitor");
 	}
 }
