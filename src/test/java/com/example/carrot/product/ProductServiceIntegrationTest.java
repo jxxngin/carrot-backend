@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -70,5 +73,77 @@ public class ProductServiceIntegrationTest {
 		entityManager.clear();
 
 		assertThat(productRepository.findById(created.id())).isEmpty();
+	}
+
+	@Test
+	@DisplayName("제목에 검색어가 포함된 상품만 대소문자를 무시하고 조회한다")
+	void searchesProductsByTitleIgnoringCase() {
+		Product first = productService.createProduct(
+			new CreateProductRequest("Wireless keyboard", 15000, "Seoul")
+		);
+		productService.createProduct(
+			new CreateProductRequest("Mouse", 5000, "Keyboard Town")
+		);
+		Product second = productService.createProduct(
+			new CreateProductRequest("Mini keyboard", 10000, "Busan")
+		);
+
+		entityManager.flush();
+		entityManager.clear();
+
+		assertThat(productService.getProducts("KEYBOARD"))
+			.extracting(Product::id)
+			.containsExactly(first.id(), second.id());
+	}
+
+	@Test
+	@DisplayName("한글 검색어의 앞뒤 공백을 제거하고 조회한다")
+	void searchesProductsWithTrimmedKoreanKeyword() {
+		Product keyboard = productService.createProduct(
+			new CreateProductRequest("무선 키보드", 15000, "잠실동")
+		);
+		productService.createProduct(
+			new CreateProductRequest("마우스", 5000, "역삼동")
+		);
+
+		entityManager.flush();
+		entityManager.clear();
+
+		assertThat(productService.getProducts("  키보드  "))
+			.extracting(Product::id)
+			.containsExactly(keyboard.id());
+	}
+
+	@Test
+	@DisplayName("검색어에 해당하는 상품이 없으면 빈 목록을 반환한다")
+	void returnsEmptyListWhenNoTitleMatches() {
+		productService.createProduct(
+			new CreateProductRequest("Keyboard", 15000, "Seoul")
+		);
+
+		entityManager.flush();
+		entityManager.clear();
+
+		assertThat(productService.getProducts("monitor")).isEmpty();
+	}
+
+	@ParameterizedTest
+	@NullAndEmptySource
+	@ValueSource(strings = {"   "})
+	@DisplayName("검색어가 없거나 공백이면 전체 상품을 조회한다")
+	void returnsAllProductsWithoutKeyword(String keyword) {
+		Product first = productService.createProduct(
+			new CreateProductRequest("Keyboard", 15000, "Seoul")
+		);
+		Product second = productService.createProduct(
+			new CreateProductRequest("Mouse", 5000, "Busan")
+		);
+
+		entityManager.flush();
+		entityManager.clear();
+
+		assertThat(productService.getProducts(keyword))
+			.extracting(Product::id)
+			.containsExactly(first.id(), second.id());
 	}
 }
