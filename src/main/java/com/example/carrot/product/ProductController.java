@@ -1,7 +1,6 @@
 package com.example.carrot.product;
 
 import java.net.URI;
-import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,10 +24,12 @@ public class ProductController {
 	}
 
 	@GetMapping("/api/products")
-	public List<Product> getProducts(
-		@RequestParam(name = "keyword", required = false) String keyword
+	public ProductPageResponse getProducts(
+		@RequestParam(name = "keyword", required = false) String keyword,
+		@RequestParam(name = "page", defaultValue = "0") int page,
+		@RequestParam(name = "size", defaultValue = "6") int size
 	) {
-		return productService.getProducts(keyword);
+		return productService.getProductPage(keyword, page, size);
 	}
 
 	@GetMapping("/api/products/{id}")

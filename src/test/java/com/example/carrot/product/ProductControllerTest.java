@@ -161,30 +161,39 @@ public class ProductControllerTest {
 	}
 
 	@Test
-	@DisplayName("검색어를 Service에 전달하고 검색 결과를 반환한다")
+	@DisplayName("검색어와 페이지 조건을 Service에 전달한다")
 	void returnsProductsForKeyword() throws Exception {
 		Product product = new Product(
-			1L,
+			3L,
 			"무선 키보드",
 			15000,
 			"잠실동"
 		);
+		ProductPageResponse response = new ProductPageResponse(
+			List.of(product), 1, 2, 3L, 2, false
+		);
 
-		given(productService.getProducts("키보드"))
-			.willReturn(List.of(product));
+		given(productService.getProductPage("키보드", 1, 2))
+			.willReturn(response);
 
 		mockMvc.perform(get("/api/products")
-				.param("keyword", "키보드"))
+				.param("keyword", "키보드")
+				.param("page", "1")
+				.param("size", "2"))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.length()").value(1))
-			.andExpect(jsonPath("$[0].id").value(1))
-			.andExpect(jsonPath("$[0].title").value("무선 키보드"));
+			.andExpect(jsonPath("$.content.length()").value(1))
+			.andExpect(jsonPath("$.content[0].id").value(3))
+			.andExpect(jsonPath("$.page").value(1))
+			.andExpect(jsonPath("$.size").value(2))
+			.andExpect(jsonPath("$.totalElements").value(3))
+			.andExpect(jsonPath("$.totalPages").value(2))
+			.andExpect(jsonPath("$.hasNext").value(false));
 
-		verify(productService).getProducts("키보드");
+		verify(productService).getProductPage("키보드", 1, 2);
 	}
 
 	@Test
-	@DisplayName("검색어를 생략하면 null을 Service에 전달한다")
+	@DisplayName("조회 조건을 생략하면 기본 페이지 조건을 전달한다")
 	void acceptsRequestWithoutKeyword() throws Exception {
 		Product product = new Product(
 			1L,
@@ -192,29 +201,40 @@ public class ProductControllerTest {
 			5000,
 			"Seoul"
 		);
+		ProductPageResponse response = new ProductPageResponse(
+			List.of(product), 0, 6, 1L, 1, false
+		);
 
-		given(productService.getProducts(null))
-			.willReturn(List.of(product));
+		given(productService.getProductPage(null, 0, 6))
+			.willReturn(response);
 
 		mockMvc.perform(get("/api/products"))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.length()").value(1))
-			.andExpect(jsonPath("$[0].title").value("Mouse"));
+			.andExpect(jsonPath("$.content[0].title").value("Mouse"))
+			.andExpect(jsonPath("$.page").value(0))
+			.andExpect(jsonPath("$.size").value(6));
 
-		verify(productService).getProducts(null);
+		verify(productService).getProductPage(null, 0, 6);
 	}
 
 	@Test
-	@DisplayName("검색 결과가 없으면 200과 빈 배열을 반환한다")
+	@DisplayName("검색 결과가 없으면 빈 content와 페이지 정보를 반환한다")
 	void returnsEmptyArrayWhenSearchHasNoResults() throws Exception {
-		given(productService.getProducts("monitor"))
-			.willReturn(List.of());
+		ProductPageResponse response = new ProductPageResponse(
+			List.of(), 0, 6, 0L, 0, false
+		);
+
+		given(productService.getProductPage("monitor", 0, 6))
+			.willReturn(response);
 
 		mockMvc.perform(get("/api/products")
 				.param("keyword", "monitor"))
 			.andExpect(status().isOk())
-			.andExpect(content().json("[]"));
+			.andExpect(jsonPath("$.content").isEmpty())
+			.andExpect(jsonPath("$.totalElements").value(0))
+			.andExpect(jsonPath("$.totalPages").value(0))
+			.andExpect(jsonPath("$.hasNext").value(false));
 
-		verify(productService).getProducts("monitor");
+		verify(productService).getProductPage("monitor", 0, 6);
 	}
 }
