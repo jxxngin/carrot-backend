@@ -2,6 +2,9 @@ package com.example.carrot.product;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,49 @@ public class ProductService {
 		return entities.stream()
 			.map(this::toProduct)
 			.toList();
+	}
+
+	public ProductPageResponse getProductPage(String keyword, int page, int size) {
+		if (page < 0) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"페이지 번호는 0 이상이어야 합니다."
+			);
+		}
+
+		if (size < 1 || size > 50) {
+			throw new ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"페이지 크기는 1 이상 50 이하여야 합니다."
+			);
+		}
+
+		String normalizedKeyword = keyword == null ? "" : keyword.strip();
+
+		Pageable pageable = PageRequest.of(
+			page,
+			size,
+			Sort.by("id").ascending()
+		);
+
+		Page<ProductEntity> result;
+
+		if (normalizedKeyword.isEmpty()) {
+			result = productRepository.findAll(pageable);
+		} else {
+			result = productRepository.findByTitleContainingIgnoreCase(normalizedKeyword, pageable);
+		}
+
+		Page<Product> products = result.map(this::toProduct);
+
+		return new ProductPageResponse(
+			products.getContent(),
+			products.getNumber(),
+			products.getSize(),
+			products.getTotalElements(),
+			products.getTotalPages(),
+			products.hasNext()
+		);
 	}
 
 	public Product getProduct(Long id) {

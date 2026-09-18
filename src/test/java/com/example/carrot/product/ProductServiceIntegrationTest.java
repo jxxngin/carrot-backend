@@ -168,4 +168,75 @@ public class ProductServiceIntegrationTest {
 			.extracting(Product::id)
 			.containsExactly(matching.id());
 	}
+
+	@Test
+	@DisplayName("전체 상품을 페이지로 나누고 마지막 페이지 여부를 반환한다")
+	void returnsProductsInPages() {
+		Product first = productService.createProduct(
+			new CreateProductRequest("Keyboard", 15000, "Seoul")
+		);
+		Product second = productService.createProduct(
+			new CreateProductRequest("Mouse", 5000, "Busan")
+		);
+		Product third = productService.createProduct(
+			new CreateProductRequest("Monitor", 50000, "Seoul")
+		);
+
+		entityManager.flush();
+		entityManager.clear();
+
+		ProductPageResponse firstPage = productService.getProductPage(null, 0, 2);
+
+		assertThat(firstPage.content())
+			.extracting(Product::id)
+			.containsExactly(first.id(), second.id());
+		assertThat(firstPage.page()).isZero();
+		assertThat(firstPage.size()).isEqualTo(2);
+		assertThat(firstPage.totalElements()).isEqualTo(3L);
+		assertThat(firstPage.totalPages()).isEqualTo(2);
+		assertThat(firstPage.hasNext()).isTrue();
+
+		ProductPageResponse lastPage = productService.getProductPage(null, 1, 2);
+
+		assertThat(lastPage.content())
+			.extracting(Product::id)
+			.containsExactly(third.id());
+		assertThat(lastPage.page()).isEqualTo(1);
+		assertThat(lastPage.size()).isEqualTo(2);
+		assertThat(lastPage.totalElements()).isEqualTo(3L);
+		assertThat(lastPage.totalPages()).isEqualTo(2);
+		assertThat(lastPage.hasNext()).isFalse();
+	}
+
+	@Test
+	@DisplayName("검색 조건에 맞는 상품만 페이지 조회하고 전체 개수를 반환한다")
+	void paginatesMatchingProducts() {
+		Product first = productService.createProduct(
+			new CreateProductRequest("Wireless Keyboard", 15000, "Seoul")
+		);
+		productService.createProduct(
+			new CreateProductRequest("Mouse", 5000, "Keyboard Town")
+		);
+		Product second = productService.createProduct(
+			new CreateProductRequest("Mini keyboard", 10000, "Busan")
+		);
+
+		entityManager.flush();
+		entityManager.clear();
+
+		ProductPageResponse result = productService.getProductPage(
+			" KEYBOARD ",
+			1,
+			1
+		);
+
+		assertThat(result.content())
+			.extracting(Product::id)
+			.containsExactly(second.id());
+		assertThat(result.page()).isEqualTo(1);
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.totalElements()).isEqualTo(2L);
+		assertThat(result.totalPages()).isEqualTo(2);
+		assertThat(result.hasNext()).isFalse();
+	}
 }
