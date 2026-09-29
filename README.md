@@ -58,6 +58,18 @@
 
 상품 ID는 서버에서 생성합니다.
 
+### 상품 목록 페이지 조회
+
+GET /api/products?keyword=키보드&page=0&size=6
+
+- page는 0부터 시작하며 기본값은 0입니다.
+- size는 1~50 범위이며 기본값은 6입니다.
+- content에 현재 페이지의 상품을 반환합니다.
+- totalElements는 검색 조건에 맞는 전체 상품 수입니다.
+- totalPages와 hasNext로 페이지 이동 가능 여부를 제공합니다.
+- 마지막 페이지를 넘으면 빈 content를 반환합니다.
+- 음수 page 또는 허용 범위 밖의 size는 400으로 처리합니다.
+
 ### 상품 검색
 
 `GET /api/products?keyword=검색어`
