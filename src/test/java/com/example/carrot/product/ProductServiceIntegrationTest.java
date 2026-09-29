@@ -9,8 +9,10 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.persistence.EntityManager;
 
@@ -237,6 +239,46 @@ public class ProductServiceIntegrationTest {
 		assertThat(result.size()).isEqualTo(1);
 		assertThat(result.totalElements()).isEqualTo(2L);
 		assertThat(result.totalPages()).isEqualTo(2);
+		assertThat(result.hasNext()).isFalse();
+	}
+
+	@Test
+	@DisplayName("음수 페이지 번호를 거절한다")
+	void rejectsNegativePageNumber() {
+		assertThatThrownBy(() -> productService.getProductPage(null, -1, 6))
+			.isInstanceOfSatisfying(ResponseStatusException.class, exception -> {
+				assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+				assertThat(exception.getReason()).isEqualTo("페이지 번호는 0 이상이어야 합니다.");
+			});
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = {-1, 0, 51})
+	@DisplayName("허용 범위 밖의 페이지 크기를 거절한다")
+	void rejectsInvalidPageSize(int size) {
+		assertThatThrownBy(() -> productService.getProductPage(null, 0, size))
+			.isInstanceOfSatisfying(ResponseStatusException.class, exception -> {
+				assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+				assertThat(exception.getReason()).isEqualTo("페이지 크기는 1 이상 50 이하여야 합니다.");
+			});
+	}
+
+	@Test
+	@DisplayName("마지막 페이지를 넘으면 빈 상품 목록과 전체 개수를 반환한다")
+	void returnsEmptyContentBeyondLastPage() {
+		productService.createProduct(
+			new CreateProductRequest("Keyboard", 15000, "Seoul")
+		);
+
+		entityManager.flush();
+		entityManager.clear();
+
+		ProductPageResponse result = productService.getProductPage(null, 5, 6);
+
+		assertThat(result.content()).isEmpty();
+		assertThat(result.page()).isEqualTo(5);
+		assertThat(result.totalElements()).isEqualTo(1L);
+		assertThat(result.totalPages()).isEqualTo(1);
 		assertThat(result.hasNext()).isFalse();
 	}
 }
