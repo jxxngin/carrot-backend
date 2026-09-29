@@ -1,7 +1,5 @@
 package com.example.carrot.product;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,23 +17,6 @@ public class ProductService {
 
 	public ProductService(ProductRepository productRepository) {
 		this.productRepository = productRepository;
-	}
-
-	public List<Product> getProducts(String keyword) {
-		String normalizedKeyword = keyword == null ? "" : keyword.strip();
-		Sort sort = Sort.by("id").ascending();
-
-		List<ProductEntity> entities;
-
-		if (normalizedKeyword.isEmpty()) {
-			entities = productRepository.findAll(sort);
-		} else {
-			entities = productRepository.findByTitleContainingIgnoreCase(normalizedKeyword, sort);
-		}
-
-		return entities.stream()
-			.map(this::toProduct)
-			.toList();
 	}
 
 	public ProductPageResponse getProductPage(String keyword, int page, int size) {

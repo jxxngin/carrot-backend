@@ -91,7 +91,7 @@ public class ProductServiceIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		assertThat(productService.getProducts("KEYBOARD"))
+		assertThat(productService.getProductPage("KEYBOARD", 0, 50).content())
 			.extracting(Product::id)
 			.containsExactly(first.id(), second.id());
 	}
@@ -109,7 +109,7 @@ public class ProductServiceIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		assertThat(productService.getProducts("  키보드  "))
+		assertThat(productService.getProductPage("  키보드  ", 0, 50).content())
 			.extracting(Product::id)
 			.containsExactly(keyboard.id());
 	}
@@ -124,7 +124,7 @@ public class ProductServiceIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		assertThat(productService.getProducts("monitor")).isEmpty();
+		assertThat(productService.getProductPage("monitor", 0, 50).content()).isEmpty();
 	}
 
 	@ParameterizedTest
@@ -142,7 +142,7 @@ public class ProductServiceIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		assertThat(productService.getProducts(keyword))
+		assertThat(productService.getProductPage(keyword, 0, 50).content())
 			.extracting(Product::id)
 			.containsExactly(first.id(), second.id());
 	}
@@ -164,7 +164,7 @@ public class ProductServiceIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		assertThat(productService.getProducts(keyword))
+		assertThat(productService.getProductPage(keyword, 0, 50).content())
 			.extracting(Product::id)
 			.containsExactly(matching.id());
 	}
